@@ -520,31 +520,4 @@ These endpoints should only be introduced when the corresponding features are pr
 
 
 
----
 
-
-## Save `api.md`
-
-
-At this point we will have:
-
-
-```
-docs/
-├── architecture.md
-├── database.md
-└── api.md
-```
-And our project design becomes:
-```
-
-                    DevVault
-                       │
-          ┌────────────┼────────────┐
-          ↓            ↓            ↓
-     Architecture   Database       API
-          │            │            │
-          └────────────┼────────────┘
-                       ↓
-                 Implementation
-```
