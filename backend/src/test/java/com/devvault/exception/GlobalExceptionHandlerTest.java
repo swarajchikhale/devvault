@@ -2,6 +2,7 @@ package com.devvault.exception;
 
 import com.devvault.auth.exception.DuplicateEmailException;
 import com.devvault.auth.exception.DuplicateUsernameException;
+import com.devvault.auth.exception.InvalidCredentialsException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -49,6 +50,20 @@ class GlobalExceptionHandlerTest {
         assertThat(response.getBody().getStatus()).isEqualTo(409);
         assertThat(response.getBody().getError()).isEqualTo("EMAIL_ALREADY_EXISTS");
         assertThat(response.getBody().getMessage()).isEqualTo("Email is already registered");
+    }
+
+    @Test
+    @DisplayName("Should handle InvalidCredentialsException with HTTP 401 and INVALID_CREDENTIALS")
+    void handleInvalidCredentialsException() {
+        InvalidCredentialsException ex = new InvalidCredentialsException("Invalid credentials");
+
+        ResponseEntity<ApiErrorResponse> response = exceptionHandler.handleInvalidCredentialsException(ex);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getStatus()).isEqualTo(401);
+        assertThat(response.getBody().getError()).isEqualTo("INVALID_CREDENTIALS");
+        assertThat(response.getBody().getMessage()).isEqualTo("Invalid credentials");
     }
 
     @Test

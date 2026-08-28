@@ -1,5 +1,7 @@
 package com.devvault.auth;
 
+import com.devvault.auth.dto.LoginRequest;
+import com.devvault.auth.dto.LoginResponse;
 import com.devvault.auth.dto.RegisterRequest;
 import com.devvault.auth.dto.UserResponse;
 import jakarta.validation.Valid;
@@ -33,5 +35,17 @@ public class AuthController {
     public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest request) {
         UserResponse response = authService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    /**
+     * Endpoint for user login.
+     *
+     * @param request the login credentials payload
+     * @return the JWT access token and token type with HTTP 200 OK
+     */
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        LoginResponse response = authService.login(request);
+        return ResponseEntity.ok(response);
     }
 }
