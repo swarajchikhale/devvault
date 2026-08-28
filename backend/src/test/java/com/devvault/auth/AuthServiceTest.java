@@ -1,9 +1,13 @@
 package com.devvault.auth;
 
+import com.devvault.auth.dto.LoginRequest;
+import com.devvault.auth.dto.LoginResponse;
 import com.devvault.auth.dto.RegisterRequest;
 import com.devvault.auth.dto.UserResponse;
 import com.devvault.auth.exception.DuplicateEmailException;
 import com.devvault.auth.exception.DuplicateUsernameException;
+import com.devvault.auth.exception.InvalidCredentialsException;
+import com.devvault.auth.jwt.JwtService;
 import com.devvault.user.User;
 import com.devvault.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +21,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,13 +37,16 @@ class AuthServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private JwtService jwtService;
+
     private PasswordEncoder passwordEncoder;
     private AuthService authService;
 
     @BeforeEach
     void setUp() {
         passwordEncoder = new BCryptPasswordEncoder();
-        authService = new AuthService(userRepository, passwordEncoder);
+        authService = new AuthService(userRepository, passwordEncoder, jwtService);
     }
 
     @Test
@@ -111,5 +119,92 @@ class AuthServiceTest {
                 .hasMessageContaining("Email 'john@example.com' is already registered");
 
         verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should successfully login with username and return Bearer token")
+    void login_Success_WithUsername() {
+        UUID userId = UUID.randomUUID();
+        String rawPassword = "SecurePassword123";
+        String encodedPassword = passwordEncoder.encode(rawPassword);
+        User user = new User("johndoe", "john@example.com", encodedPassword) {
+            @Override
+            public UUID getId() {
+                return userId;
+            }
+        };
+
+        when(userRepository.findByUsernameOrEmail("johndoe", "johndoe"))
+                .thenReturn(Optional.of(user));
+        when(jwtService.generateToken(userId)).thenReturn("mock.jwt.token");
+
+        LoginRequest request = new LoginRequest("johndoe", rawPassword);
+        LoginResponse response = authService.login(request);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getAccessToken()).isEqualTo("mock.jwt.token");
+        assertThat(response.getTokenType()).isEqualTo("Bearer");
+
+        verify(jwtService).generateToken(userId);
+    }
+
+    @Test
+    @DisplayName("Should successfully login with email and return Bearer token")
+    void login_Success_WithEmail() {
+        UUID userId = UUID.randomUUID();
+        String rawPassword = "SecurePassword123";
+        String encodedPassword = passwordEncoder.encode(rawPassword);
+        User user = new User("johndoe", "john@example.com", encodedPassword) {
+            @Override
+            public UUID getId() {
+                return userId;
+            }
+        };
+
+        when(userRepository.findByUsernameOrEmail("john@example.com", "john@example.com"))
+                .thenReturn(Optional.of(user));
+        when(jwtService.generateToken(userId)).thenReturn("mock.jwt.token");
+
+        LoginRequest request = new LoginRequest("john@example.com", rawPassword);
+        LoginResponse response = authService.login(request);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getAccessToken()).isEqualTo("mock.jwt.token");
+        assertThat(response.getTokenType()).isEqualTo("Bearer");
+
+        verify(jwtService).generateToken(userId);
+    }
+
+    @Test
+    @DisplayName("Should throw InvalidCredentialsException when identifier does not exist")
+    void login_UnknownIdentifier_ThrowsInvalidCredentialsException() {
+        when(userRepository.findByUsernameOrEmail("unknown", "unknown"))
+                .thenReturn(Optional.empty());
+
+        LoginRequest request = new LoginRequest("unknown", "AnyPassword123");
+
+        assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(InvalidCredentialsException.class)
+                .hasMessage("Invalid credentials");
+
+        verify(jwtService, never()).generateToken(any());
+    }
+
+    @Test
+    @DisplayName("Should throw InvalidCredentialsException when password does not match")
+    void login_IncorrectPassword_ThrowsInvalidCredentialsException() {
+        String encodedPassword = passwordEncoder.encode("CorrectPassword123");
+        User user = new User("johndoe", "john@example.com", encodedPassword);
+
+        when(userRepository.findByUsernameOrEmail("johndoe", "johndoe"))
+                .thenReturn(Optional.of(user));
+
+        LoginRequest request = new LoginRequest("johndoe", "WrongPassword123");
+
+        assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(InvalidCredentialsException.class)
+                .hasMessage("Invalid credentials");
+
+        verify(jwtService, never()).generateToken(any());
     }
 }
