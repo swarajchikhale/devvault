@@ -1,5 +1,7 @@
 package com.devvault.auth;
 
+import com.devvault.auth.dto.LoginRequest;
+import com.devvault.auth.dto.LoginResponse;
 import com.devvault.auth.dto.RegisterRequest;
 import com.devvault.auth.dto.UserResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -77,6 +79,39 @@ class AuthControllerTest {
         RegisterRequest request = new RegisterRequest("", "invalid-email", "");
 
         mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("POST /api/auth/login should return HTTP 200 OK with LoginResponse body")
+    void login_Success() throws Exception {
+        LoginRequest request = new LoginRequest("johndoe", "SecurePassword123");
+        LoginResponse response = new LoginResponse("sample.jwt.token", "Bearer");
+
+        when(authService.login(any(LoginRequest.class))).thenReturn(response);
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").value("sample.jwt.token"))
+                .andExpect(jsonPath("$.tokenType").value("Bearer"))
+                .andExpect(jsonPath("$.password").doesNotExist())
+                .andExpect(jsonPath("$.passwordHash").doesNotExist())
+                .andExpect(jsonPath("$.username").doesNotExist())
+                .andExpect(jsonPath("$.email").doesNotExist());
+
+        verify(authService).login(any(LoginRequest.class));
+    }
+
+    @Test
+    @DisplayName("POST /api/auth/login with blank fields should return HTTP 400 Bad Request")
+    void login_InvalidPayload_ReturnsBadRequest() throws Exception {
+        LoginRequest request = new LoginRequest("", "");
+
+        mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());

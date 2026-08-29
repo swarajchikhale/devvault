@@ -1,0 +1,26 @@
+# Memory & Internal Context (Local only, not pushed)
+PROJECT_MEMORY.md
+
+# IDE & Editor files
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Environment & Local Configuration
+.env
+.env.*
+*.env
+application-local.properties
+application-dev.properties
+
+# Build artifacts
+target/
+build/
+dist/
+node_modules/
