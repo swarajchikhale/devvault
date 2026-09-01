@@ -3,6 +3,7 @@ package com.devvault.exception;
 import com.devvault.auth.exception.DuplicateEmailException;
 import com.devvault.auth.exception.DuplicateUsernameException;
 import com.devvault.auth.exception.InvalidCredentialsException;
+import com.devvault.note.exception.NoteNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -64,6 +65,20 @@ class GlobalExceptionHandlerTest {
         assertThat(response.getBody().getStatus()).isEqualTo(401);
         assertThat(response.getBody().getError()).isEqualTo("INVALID_CREDENTIALS");
         assertThat(response.getBody().getMessage()).isEqualTo("Invalid credentials");
+    }
+
+    @Test
+    @DisplayName("Should handle NoteNotFoundException with HTTP 404 and NOTE_NOT_FOUND")
+    void handleNoteNotFoundException() {
+        NoteNotFoundException ex = new NoteNotFoundException("Note not found");
+
+        ResponseEntity<ApiErrorResponse> response = exceptionHandler.handleNoteNotFoundException(ex);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getStatus()).isEqualTo(404);
+        assertThat(response.getBody().getError()).isEqualTo("NOTE_NOT_FOUND");
+        assertThat(response.getBody().getMessage()).isEqualTo("Note not found");
     }
 
     @Test
