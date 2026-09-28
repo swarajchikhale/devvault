@@ -4,6 +4,7 @@ import com.devvault.auth.exception.DuplicateEmailException;
 import com.devvault.auth.exception.DuplicateUsernameException;
 import com.devvault.auth.exception.InvalidCredentialsException;
 import com.devvault.note.exception.NoteNotFoundException;
+import com.devvault.snippet.exception.SnippetNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -52,6 +53,16 @@ public class GlobalExceptionHandler {
                 HttpStatus.NOT_FOUND.value(),
                 "NOTE_NOT_FOUND",
                 "Note not found"
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(SnippetNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleSnippetNotFoundException(SnippetNotFoundException ex) {
+        ApiErrorResponse response = new ApiErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                "SNIPPET_NOT_FOUND",
+                "Snippet not found"
         );
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
