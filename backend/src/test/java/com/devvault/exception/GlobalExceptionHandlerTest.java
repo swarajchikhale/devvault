@@ -4,6 +4,7 @@ import com.devvault.auth.exception.DuplicateEmailException;
 import com.devvault.auth.exception.DuplicateUsernameException;
 import com.devvault.auth.exception.InvalidCredentialsException;
 import com.devvault.note.exception.NoteNotFoundException;
+import com.devvault.snippet.exception.SnippetNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -79,6 +80,20 @@ class GlobalExceptionHandlerTest {
         assertThat(response.getBody().getStatus()).isEqualTo(404);
         assertThat(response.getBody().getError()).isEqualTo("NOTE_NOT_FOUND");
         assertThat(response.getBody().getMessage()).isEqualTo("Note not found");
+    }
+
+    @Test
+    @DisplayName("Should handle SnippetNotFoundException with HTTP 404 and SNIPPET_NOT_FOUND")
+    void handleSnippetNotFoundException() {
+        SnippetNotFoundException ex = new SnippetNotFoundException("Snippet not found");
+
+        ResponseEntity<ApiErrorResponse> response = exceptionHandler.handleSnippetNotFoundException(ex);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getStatus()).isEqualTo(404);
+        assertThat(response.getBody().getError()).isEqualTo("SNIPPET_NOT_FOUND");
+        assertThat(response.getBody().getMessage()).isEqualTo("Snippet not found");
     }
 
     @Test
