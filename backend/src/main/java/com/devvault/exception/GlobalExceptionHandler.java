@@ -4,6 +4,7 @@ import com.devvault.auth.exception.DuplicateEmailException;
 import com.devvault.auth.exception.DuplicateUsernameException;
 import com.devvault.auth.exception.InvalidCredentialsException;
 import com.devvault.note.exception.NoteNotFoundException;
+import com.devvault.resource.exception.ResourceNotFoundException;
 import com.devvault.snippet.exception.SnippetNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -63,6 +64,16 @@ public class GlobalExceptionHandler {
                 HttpStatus.NOT_FOUND.value(),
                 "SNIPPET_NOT_FOUND",
                 "Snippet not found"
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        ApiErrorResponse response = new ApiErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                "RESOURCE_NOT_FOUND",
+                "Resource not found"
         );
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
