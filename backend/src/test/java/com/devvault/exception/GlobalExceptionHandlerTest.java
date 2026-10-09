@@ -4,6 +4,7 @@ import com.devvault.auth.exception.DuplicateEmailException;
 import com.devvault.auth.exception.DuplicateUsernameException;
 import com.devvault.auth.exception.InvalidCredentialsException;
 import com.devvault.note.exception.NoteNotFoundException;
+import com.devvault.resource.exception.ResourceNotFoundException;
 import com.devvault.snippet.exception.SnippetNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -94,6 +95,20 @@ class GlobalExceptionHandlerTest {
         assertThat(response.getBody().getStatus()).isEqualTo(404);
         assertThat(response.getBody().getError()).isEqualTo("SNIPPET_NOT_FOUND");
         assertThat(response.getBody().getMessage()).isEqualTo("Snippet not found");
+    }
+
+    @Test
+    @DisplayName("Should handle ResourceNotFoundException with HTTP 404 and RESOURCE_NOT_FOUND")
+    void handleResourceNotFoundException() {
+        ResourceNotFoundException ex = new ResourceNotFoundException("Resource not found");
+
+        ResponseEntity<ApiErrorResponse> response = exceptionHandler.handleResourceNotFoundException(ex);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getStatus()).isEqualTo(404);
+        assertThat(response.getBody().getError()).isEqualTo("RESOURCE_NOT_FOUND");
+        assertThat(response.getBody().getMessage()).isEqualTo("Resource not found");
     }
 
     @Test
